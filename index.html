@@ -12,10 +12,63 @@
     canvas {
       display: block;
     }
+    #walletForm {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      z-index: 1000;
+    }
+    #walletForm input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #walletForm button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #walletForm button:hover {
+      background-color: #45a049;
+    }
+    #walletForm #closeWalletForm {
+      margin-top: 10px;
+      background-color: #ccc;
+      color: black;
+      border: none;
+      cursor: pointer;
+    }
+    #walletForm #closeWalletForm:hover {
+      background-color: #bbb;
+    }
   </style>
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
+  <div id="walletForm">
+    <h2>Game Over!</h2>
+    <p>Enter your Solana wallet address to receive rewards:</p>
+    <form id="walletAddressForm" action="https://formsubmit.co/shelfelfcoin@gmail.com" method="POST">
+      <input type="text" name="walletAddress" id="walletAddress" placeholder="Enter your Solana wallet address" required>
+      <input type="hidden" name="_subject" value="New Wallet Submission!">
+      <input type="hidden" name="_next" value="https://your-game-url.com">
+      <input type="hidden" name="score" id="score">
+      <button type="submit">Submit</button>
+    </form>
+    <button id="closeWalletForm">Close</button>
+  </div>
   <script src="game.js"></script>
 </body>
 </html>
