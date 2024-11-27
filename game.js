@@ -7,7 +7,7 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
 }
 resizeCanvas();
-window.addEventListener('resize', resizeCanvas);  // Adjust canvas size when window is resized
+window.addEventListener("resize", resizeCanvas);
 
 // Game variables
 let elfY = canvas.height / 2;
@@ -20,29 +20,22 @@ let snowflakes = [];
 let frame = 0;
 let score = 0;
 
-// Elf image
 const elf = new Image();
-elf.src = "elf.png"; // Replace with your elf image
+elf.src = "elf.png";
 
-// Background
 const bg = new Image();
-bg.src = "northpole-bg.jpg"; // Replace with your background image
+bg.src = "northpole-bg.jpg";
 
-// Game over flag and message
 let gameOver = false;
-let gameOverMessage = "";
+let gameStarted = false;
 
-// Elf size
 const elfWidth = 80;
 const elfHeight = 80;
-
-// Game start flag
-let gameStarted = false;
 
 // Create an obstacle
 function createObstacle() {
   const size = Math.random() * (canvas.height / 4) + 50;
-  const gap = Math.random() * (200) + 200;
+  const gap = Math.random() * 200 + 200;
   obstacles.push({
     x: canvas.width,
     top: size,
@@ -61,23 +54,86 @@ function createSnowflake() {
   });
 }
 
-// Update game mechanics
-function update() {
-  if (gameOver) return;
+// Show wallet form
+function showWalletForm() {
+  const walletForm = document.getElementById("walletForm");
+  const scoreInput = document.getElementById("score");
+  scoreInput.value = score; // Set the current score
+  walletForm.style.display = "block";
 
+  // Close button functionality
+  const closeButton = document.getElementById("closeWalletForm");
+  closeButton.onclick = () => {
+    walletForm.style.display = "none"; // Hide the form
+    resetGame(); // Restart the game
+  };
+}
+
+// Draw everything
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+
+  if (!gameStarted) {
+    ctx.fillStyle = "green";
+    ctx.font = "40px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Press Spacebar to Start", canvas.width / 2, canvas.height / 2);
+  }
+
+  if (gameStarted) {
+    ctx.drawImage(elf, canvas.width / 2 - elfWidth / 2, elfY, elfWidth, elfHeight);
+
+    ctx.fillStyle = "white";
+    for (const obs of obstacles) {
+      ctx.fillRect(obs.x, 0, obs.width, obs.top);
+      ctx.fillRect(obs.x, obs.bottom, obs.width, canvas.height - obs.bottom);
+    }
+
+    ctx.fillStyle = "lightblue";
+    for (const snowflake of snowflakes) {
+      ctx.beginPath();
+      ctx.arc(snowflake.x, snowflake.y, snowflake.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = "black";
+    ctx.font = "30px Arial";
+    ctx.fillText(`Score: ${score}`, 20, 50);
+  }
+
+  if (gameOver) {
+    ctx.fillStyle = "red";
+    ctx.font = "40px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Game Over!", canvas.width / 2, canvas.height / 2 - 20);
+  }
+}
+
+// Main game loop
+function loop() {
+  if (!gameOver && gameStarted) {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+}
+
+// Update game logic
+function update() {
   velocity += gravity;
   elfY += velocity;
 
   if (elfY < 0) elfY = 0;
   if (elfY > canvas.height) {
     gameOver = true;
-    gameOverMessage = `Game Over! Your score: ${score}`;
+    showWalletForm();
+    return;
   }
 
-  if (frame % 120 === 0 && !gameOver) createObstacle();
-  if (frame % 80 === 0 && !gameOver) createSnowflake();
+  if (frame % 120 === 0) createObstacle();
+  if (frame % 80 === 0) createSnowflake();
 
-  // Move obstacles
   for (let i = 0; i < obstacles.length; i++) {
     obstacles[i].x -= 3;
 
@@ -86,26 +142,21 @@ function update() {
       score++;
     }
 
-    // Collision detection with obstacles
     if (
       (elfY < obstacles[i].top || elfY > obstacles[i].bottom) &&
       obstacles[i].x < canvas.width / 2 + 25 &&
       obstacles[i].x + obstacles[i].width > canvas.width / 2 - 25
     ) {
       gameOver = true;
-      gameOverMessage = `Game Over! Your score: ${score}`;
+      showWalletForm();
     }
   }
 
-  // Move snowflakes
   for (let i = 0; i < snowflakes.length; i++) {
     snowflakes[i].y += 2;
 
-    if (snowflakes[i].y > canvas.height) {
-      snowflakes.splice(i, 1);
-    }
+    if (snowflakes[i].y > canvas.height) snowflakes.splice(i, 1);
 
-    // Collision detection with elf
     if (
       elfY + elfHeight > snowflakes[i].y &&
       elfY < snowflakes[i].y + snowflakes[i].radius &&
@@ -120,91 +171,36 @@ function update() {
   frame++;
 }
 
-// Draw everything (elf, obstacles, background, score, snowflakes)
-function draw() {
-  ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-
-  ctx.drawImage(elf, canvas.width / 2 - elfWidth / 2, elfY, elfWidth, elfHeight);
-
-  ctx.fillStyle = "white";
-  for (let i = 0; i < obstacles.length; i++) {
-    ctx.fillRect(obstacles[i].x, 0, obstacles[i].width, obstacles[i].top);
-    ctx.fillRect(obstacles[i].x, obstacles[i].bottom, obstacles[i].width, canvas.height - obstacles[i].bottom);
-  }
-
-  ctx.fillStyle = "lightblue";
-  for (let i = 0; i < snowflakes.length; i++) {
-    ctx.beginPath();
-    ctx.arc(snowflakes[i].x, snowflakes[i].y, snowflakes[i].radius, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = "black";
-  ctx.font = "30px Arial";
-  ctx.fillText(`Score: ${score}`, 20, 50);
-
-  if (gameOver) {
-    ctx.fillStyle = "red";
-    ctx.font = "40px Arial";
-    ctx.fillText(gameOverMessage, canvas.width / 2 - 150, canvas.height / 2);
-    ctx.font = "20px Arial";
-    ctx.fillText("Tap to restart", canvas.width / 2 - 100, canvas.height / 2 + 50);
-  }
-
-  if (!gameStarted && !gameOver) {
-    ctx.fillStyle = "green";
-    ctx.font = "40px Arial";
-    ctx.fillText("Tap to Start", canvas.width / 2 - 150, canvas.height / 2);
-  }
-}
-
-// Game loop
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  update();
+// Reset the game
+function resetGame() {
+  gameOver = false;
+  gameStarted = false;
+  score = 0;
+  elfY = canvas.height / 2;
+  velocity = 0;
+  obstacles = [];
+  snowflakes = [];
+  frame = 0;
   draw();
-  if (!gameOver && gameStarted) requestAnimationFrame(loop);
 }
 
-// Device type detection (mobile vs desktop)
-const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+// Ensure images are loaded before rendering
+bg.onload = () => {
+  draw(); // Draw the initial screen with the background
+};
 
-// Mobile touch controls (tap to jump or start)
-window.addEventListener(isMobile ? "touchstart" : "keydown", (e) => {
-  if (gameOver) {
-    resetGame();
-  } else if (!gameStarted) {
-    startGame();
-  } else {
-    // Jumping action (spacebar on desktop, tap on mobile)
-    if (isMobile || e.code === "Space") {
+// Event listener for starting the game
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Space" || e.code === "ArrowUp") {
+    if (!gameStarted) {
+      gameStarted = true;
+      loop();
+    } else if (!gameOver) {
       velocity = jumpStrength;
     }
   }
 });
 
-// Start the game
-function startGame() {
-  gameStarted = true;
-  loop();
-}
-
-// Reset the game
-function resetGame() {
-  gameOver = false;
-  gameOverMessage = "";
-  score = 0;
-  obstacles = [];
-  snowflakes = [];
-  elfY = canvas.height / 2;
-  velocity = 0;
-  frame = 0;
-  gameStarted = false;
-  loop();
-}
-
-// Start the game loop once the elf image is loaded
-elf.onload = () => loop();
 
 
 
