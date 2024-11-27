@@ -78,7 +78,7 @@ function draw() {
     ctx.fillStyle = "green";
     ctx.font = "40px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Press Spacebar to Start", canvas.width / 2, canvas.height / 2);
+    ctx.fillText("Tap or Press Spacebar to Start", canvas.width / 2, canvas.height / 2);
   }
 
   if (gameStarted) {
@@ -189,16 +189,24 @@ bg.onload = () => {
   draw(); // Draw the initial screen with the background
 };
 
-// Event listener for starting the game
+// Event listener for starting the game (PC: Space/ArrowUp, Mobile: Touch)
+function startGame() {
+  if (!gameStarted) {
+    gameStarted = true;
+    loop();
+  } else if (!gameOver) {
+    velocity = jumpStrength;
+  }
+}
+
 window.addEventListener("keydown", (e) => {
   if (e.code === "Space" || e.code === "ArrowUp") {
-    if (!gameStarted) {
-      gameStarted = true;
-      loop();
-    } else if (!gameOver) {
-      velocity = jumpStrength;
-    }
+    startGame();
   }
+});
+
+canvas.addEventListener("touchstart", () => {
+  startGame();
 });
 
 
